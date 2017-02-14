@@ -9,6 +9,8 @@
 import UIKit
 
 class ViewController: UIViewController {
+    
+    weak var rootVC:RootViewController?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,5 +23,8 @@ class ViewController: UIViewController {
     }
 
 
+    @IBAction func menuAction(_ sender: Any) {
+        self.rootVC?.openMenu()
+    }
 }
 
