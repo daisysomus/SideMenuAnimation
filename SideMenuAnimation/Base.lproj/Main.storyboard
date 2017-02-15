@@ -50,7 +50,7 @@
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" allowsSelection="NO" rowHeight="80" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="Ke0-2T-fML">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="MenuCell" rowHeight="80" id="HaF-aQ-57Q">
                                         <rect key="frame" x="0.0" y="28" width="375" height="80"/>
@@ -67,7 +67,7 @@
                                 </connections>
                             </tableView>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="Ke0-2T-fML" secondAttribute="trailing" id="MFe-Rf-Ve7"/>
                             <constraint firstItem="Gi0-rY-BTP" firstAttribute="top" secondItem="Ke0-2T-fML" secondAttribute="bottom" id="awg-ke-j3M"/>
@@ -87,6 +87,10 @@
         <scene sceneID="2HS-xG-7Ff">
             <objects>
                 <viewController id="5Fx-6A-Chj" customClass="ViewController" customModule="SideMenuAnimation" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="371-7M-vrd"/>
+                        <viewControllerLayoutGuide type="bottom" id="01V-xz-VeF"/>
+                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="diG-Mh-kWq">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

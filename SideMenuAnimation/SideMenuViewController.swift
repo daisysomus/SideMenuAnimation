@@ -39,5 +39,14 @@ class SideMenuViewController:UIViewController, UITableViewDelegate, UITableViewD
         cell?.backgroundColor = cellsData[indexPath.row]
         return cell!
     }
+}
+
+extension SideMenuViewController:SideMenuAnimationProtocol {
+    func animationViews() -> [UIView] {
+        return self.tableView.visibleCells
+    }
     
+    func parentView() -> UIView {
+        return self.view
+    }
 }

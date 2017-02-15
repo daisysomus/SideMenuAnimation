@@ -33,7 +33,7 @@ class RootViewController:UIViewController {
         
         navVC!.view.frame = CGRect(x: 80, y: 0, width: navVC!.view.frame.width, height: navVC!.view.frame.height)
         
-        self.sideMenuAnimation = SideMenuAnimation.init(rootVC: self, menuVC: self.menuVC!, rightVC: navVC!)
+        self.sideMenuAnimation = SideMenuAnimation.init(delegate: menuVC!, rootView:self.view, rightView:navVC!.view)
     }
     
     func openMenu() {

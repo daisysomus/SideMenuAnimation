@@ -8,11 +8,16 @@
 
 import UIKit
 
+protocol SideMenuAnimationProtocol {
+    func animationViews() -> [UIView]
+    func parentView() -> UIView
+}
+
 class SideMenuAnimation {
     
-    var rootVC:UIViewController
-    var menuVC:SideMenuViewController
-    var rightVC:UIViewController
+    var delegate:SideMenuAnimationProtocol
+    var rightView:UIView
+    var rootView:UIView
     
     var isOpen = true
     
@@ -24,25 +29,24 @@ class SideMenuAnimation {
     private let shadowView = UIView()
     private let shadowWidth:CGFloat = 20
     
-    private var menuCellSize:CGFloat = 0
     
-    init(rootVC:UIViewController,menuVC:SideMenuViewController, rightVC:UIViewController) {
-        self.rootVC = rootVC
-        self.menuVC = menuVC
-        self.rightVC = rightVC
+    init(delegate:SideMenuAnimationProtocol, rootView:UIView, rightView:UIView) {
+        self.delegate = delegate
+        self.rightView = rightView
+        self.rootView = rootView
         
         self.configForAnimations()
     }
     
     private func configForAnimations() {
         self.dimmingView.backgroundColor = UIColor.black
-        self.dimmingView.frame = self.rightVC.view.frame
-        self.rootVC.view.addSubview(self.dimmingView)
+        self.dimmingView.frame = self.rightView.frame
+        self.rootView.addSubview(self.dimmingView)
         self.dimmingView.alpha = 0.5
         let tapGesture = UITapGestureRecognizer.init(target: self, action: #selector(handleTapGesture(gesture:)))
         self.dimmingView.addGestureRecognizer(tapGesture)
         
-        self.shadowView.frame = CGRect(x:self.menuVC.view.frame.width, y:0, width:self.shadowWidth, height:self.rootVC.view.frame.height)
+        self.shadowView.frame = CGRect(x:self.delegate.parentView().frame.width, y:0, width:self.shadowWidth, height:self.rootView.frame.height)
         let layer = CAGradientLayer()
         layer.frame = self.shadowView.bounds
         layer.colors = [UIColor(white:0.0, alpha: 0.5).cgColor, UIColor(white:0.0, alpha: 0.0).cgColor]
@@ -50,9 +54,12 @@ class SideMenuAnimation {
         layer.endPoint = CGPoint(x:1.0, y:0.0)
         shadowView.layer.insertSublayer(layer, at: 1)
         shadowView.alpha = 1.0
-        self.rootVC.view.addSubview(shadowView)
+        self.rootView.addSubview(shadowView)
         
-        self.menuCellSize = self.menuVC.view.frame.width
+    }
+    
+    private func viewWidth() -> CGFloat {
+        return self.delegate.parentView().frame.width
     }
     
     @objc func handleTapGesture(gesture:UITapGestureRecognizer) {
@@ -60,31 +67,26 @@ class SideMenuAnimation {
     }
     
     func prepareForAnimation() {
-        let visibleCells = self.menuVC.tableView.visibleCells
-        
-        let yOffset = -self.menuVC.tableView.contentOffset.y
-        
-        for cell in visibleCells {
-            if let view = cell.resizableSnapshotView(from: cell.bounds, afterScreenUpdates: true, withCapInsets: .zero) {
-                view.frame = cell.frame.offsetBy(dx: 0, dy: yOffset)
-                view.layer.anchorPoint = CGPoint(x: 0.0, y: 0.5)
-                view.frame = view.frame.offsetBy(dx: -0.5 * view.frame.width, dy: 0)
-                self.animationViews.append(view)
-                self.menuVC.view.addSubview(view)
-            }
+        self.animationViews = self.delegate.animationViews()
+    
+        for view in self.animationViews {
+            view.layer.anchorPoint = CGPoint(x: 0.0, y: 0.5)
+            view.frame = view.frame.offsetBy(dx: -0.5 * view.frame.width, dy: 0)
         }
-        
     }
     
     func openMenu() {
-        //TODO:第一次打开的时候
         
-        self.rootVC.view.addSubview(self.menuVC.view)
+        guard !isOpen else {
+            return
+        }
+        self.rootView.addSubview(self.delegate.parentView())
+        
         UIView.animateKeyframes(withDuration: animationDuration, delay: 0, options: .layoutSubviews, animations: {
-            UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 1.0, animations: { 
-                self.dimmingView.center = self.dimmingView.center.offsetBy(dx: self.menuCellSize, dy: 0)
-                self.shadowView.center = self.shadowView.center.offsetBy(dx: self.menuCellSize, dy: 0)
-                self.rightVC.view.center = self.rightVC.view.center.offsetBy(dx: self.menuCellSize, dy: 0)
+            UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: self.animationTime(), animations: {
+                self.dimmingView.center = self.dimmingView.center.offsetBy(dx: self.viewWidth(), dy: 0)
+                self.shadowView.center = self.shadowView.center.offsetBy(dx: self.viewWidth(), dy: 0)
+                self.rightView.center = self.rightView.center.offsetBy(dx: self.viewWidth(), dy: 0)
                 
                 self.dimmingView.alpha = 0.5
                 self.shadowView.alpha = 1.0
@@ -92,9 +94,9 @@ class SideMenuAnimation {
             self.startAnimation(transform: CATransform3DIdentity)
         }) { (finished) in
             self.isOpen = true
-            self.menuVC.tableView.isHidden = false
             for view in self.animationViews {
-                view.removeFromSuperview()
+                view.layer.anchorPoint = CGPoint(x:0.5, y:0.5)
+                view.frame = view.frame.offsetBy(dx: 0.5 * view.frame.width, dy: 0)
             }
             self.animationViews.removeAll()
         }
@@ -106,13 +108,12 @@ class SideMenuAnimation {
         }
         
         self.prepareForAnimation()
-        self.menuVC.tableView.isHidden = true
         
         UIView.animateKeyframes(withDuration: animationDuration, delay: 0, options: .layoutSubviews, animations: {
             UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 1.0, animations: {
-                self.dimmingView.center = self.dimmingView.center.offsetBy(dx: -self.menuCellSize, dy: 0)
-                self.shadowView.center = self.shadowView.center.offsetBy(dx: -self.menuCellSize, dy: 0)
-                self.rightVC.view.center = self.rightVC.view.center.offsetBy(dx: -self.menuCellSize, dy: 0)
+                self.dimmingView.center = self.dimmingView.center.offsetBy(dx: -self.viewWidth(), dy: 0)
+                self.shadowView.center = self.shadowView.center.offsetBy(dx: -self.viewWidth(), dy: 0)
+                self.rightView.center = self.rightView.center.offsetBy(dx: -self.viewWidth(), dy: 0)
                 
                 self.dimmingView.alpha = 0.0
                 self.shadowView.alpha = 0.0
@@ -121,21 +122,28 @@ class SideMenuAnimation {
         }) { (finished) in
             self.isOpen = false
            
-            self.menuVC.view.removeFromSuperview()
+            self.delegate.parentView().removeFromSuperview()
         }
     }
     
+    let interval = 0.6
     func startAnimation(transform:CATransform3D) {
-        let interval = 0.6
-        let animationTime = 1.0 / (TimeInterval(self.animationViews.count) * interval + (1 - interval))
+        
+        let animationTime = self.animationTime()
         
         var startTime = 0.0
         for (index, view) in self.animationViews.enumerated() {
-            startTime = fmax(TimeInterval(index) * animationTime - TimeInterval(index - 1) * (1 - interval) * animationTime, 0.0)
-            UIView.addKeyframe(withRelativeStartTime: startTime, relativeDuration: animationTime, animations: {
+            startTime = (TimeInterval)(index) * interval * animationTime
+            UIView.addKeyframe(withRelativeStartTime: startTime,
+                               relativeDuration: animationTime,
+                               animations: {
                 view.layer.transform = transform
             })
         }
+    }
+    
+    private func animationTime() -> TimeInterval {
+        return 1.0 / (TimeInterval(self.animationViews.count - 1) * interval + 1)
     }
 }
 
